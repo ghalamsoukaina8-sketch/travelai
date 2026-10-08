@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TravelAI – Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F5F0E8;
+      --sand: #E8DFD0;
+      --terracotta: #C4714A;
+      --terra-dark: #A05A37;
+      --deep: #1A1410;
+      --mid: #3D2E22;
+      --muted: #8A7A6A;
+      --white: #FFFDF9;
+      --green: #4ADE80;
+      --sidebar-w: 240px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--deep);
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--deep);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 1.75rem 1.5rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--terracotta);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+
+    .logo-name {
+      font-family: 'Playfair Display', serif;
+      color: var(--white);
+      font-size: 1.2rem;
+    }
+
+    .sidebar-nav {
+      padding: 1.25rem 0.75rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .nav-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.3);
+      padding: 0.6rem 0.75rem 0.3rem;
+      margin-top: 0.75rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 10px;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 400;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+    .nav-item.active { color: var(--white); background: var(--terracotta); font-weight: 500; }
+
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-user {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .user-avatar {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--terracotta), #E8956A);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; color: white; font-weight: 600;
+    }
+
+    .user-info { flex: 1; }
+    .user-name { font-size: 0.85rem; color: var(--white); font-weight: 500; }
+    .user-plan { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+
+    /* MAIN */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--sand);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .topbar-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; flex: 1; }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--cream);
+      border: 1.5px solid var(--sand);
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      width: 260px;
+    }
+
+    .search-bar input {
+      border: none; background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; color: var(--deep); outline: none; width: 100%;
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+    .btn-primary {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--terracotta); color: var(--white);
+      border: none; border-radius: 10px;
+      padding: 0.55rem 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; transition: background 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary:hover { background: var(--terra-dark); }
+
+    /* CONTENT */
+    .content { padding: 2rem; flex: 1; }
+
+    /* STATS ROW */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 1.25rem 1.4rem;
+      border: 1px solid var(--sand);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: rgba(196,113,74,0.07);
+    }
+
+    .stat-icon { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .stat-val { font-size: 1.8rem; font-weight: 600; color: var(--deep); margin-bottom: 0.2rem; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); }
+    .stat-trend { font-size: 0.75rem; color: #22C55E; margin-top: 0.3rem; }
+
+    /* GRID MAIN */
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 1.5rem;
+    }
+
+    /* SECTION TITLE */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .section-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+    .section-link { font-size: 0.82rem; color: var(--terracotta); text-decoration: none; cursor: pointer; }
+    .section-link:hover { text-decoration: underline; }
+
+    /* TRIP CARDS */
+    .trips-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .trip-card {
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--sand);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .trip-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,20,16,0.1); }
+
+    .trip-img {
+      height: 130px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .trip-badge {
+      position: absolute;
+      top: 0.75rem; right: 0.75rem;
+      background: rgba(26,20,16,0.6);
+      backdrop-filter: blur(8px);
+      color: white;
+      font-size: 0.72rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+    }
+
+    .trip-badge.active { background: rgba(74,222,128,0.85); color: #0A2E18; }
+
+    .trip-body { padding: 1rem; }
+    .trip-dest { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .trip-dates { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.6rem; }
+
+    .trip-meta { display: flex; gap: 0.5rem; }
+    .meta-tag {
+      font-size: 0.72rem;
+      background: var(--cream);
+      color: var(--mid);
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+    }
+
+    /* RIGHT COLUMN */
+    .right-col { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* CHATBOX MINI */
+    .chat-box {
+      background: var(--white);
+      border-radius: 16px;
+      border: 1px solid var(--sand);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--sand);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .ai-avatar {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--terracotta), #E8956A);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .chat-title { font-weight: 600; font-size: 0.88rem; }
+    .chat-status { font-size: 0.72rem; color: var(--green); display: flex; align-items: center; gap: 0.3rem; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    .chat-messages { padding: 1rem; min-height: 180px; display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .msg {
+      max-width: 85%;
+      padding: 0.65rem 0.9rem;
+      border-radius: 12px;
+      font-size: 0.83rem;
+      line-height: 1.5;
+    }
+
+    .msg-ai {
+      background: var(--cream);
+      color: var(--mid);
+      border-bottom-left-radius: 3px;
+      align-self: flex-start;
+    }
+
+    .msg-user {
+      background: var(--terracotta);
+      color: white;
+      border-bottom-right-radius: 3px;
+      align-self: flex-end;
+    }
+
+    .chat-input-row {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--sand);
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1.5px solid var(--sand);
+      background: var(--cream);
+      border-radius: 9px;
+      padding: 0.5rem 0.8rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      color: var(--deep);
+      outline: none;
+    }
+
+    .chat-input:focus { border-color: var(--terracotta); }
+
+    .send-btn {
+      background: var(--terracotta);
+      border: none;
+      border-radius: 9px;
+      padding: 0.5rem 0.8rem;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .send-btn:hover { background: var(--terra-dark); }
+
+    .chat-full-link {
+      display: block;
+      text-align: center;
+      padding: 0.6rem;
+      background: var(--cream);
+      color: var(--terracotta);
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-top: 1px solid var(--sand);
+      transition: background 0.2s;
+    }
+    .chat-full-link:hover { background: var(--sand); }
+
+    /* RECOMMENDATIONS */
+    .reco-card {
+      background: var(--white);
+      border-radius: 16px;
+      border: 1px solid var(--sand);
+      padding: 1.25rem;
+    }
+
+    .reco-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+
+    .reco-item {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.65rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .reco-item:hover { background: var(--cream); }
+
+    .reco-img {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      object-fit: cover;
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+    }
+
+    .reco-info { flex: 1; }
+    .reco-name { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .reco-sub { font-size: 0.75rem; color: var(--muted); }
+
+    .reco-heart {
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: color 0.2s;
+    }
+    .reco-heart:hover { color: #ef4444; }
+    .reco-heart.liked { color: #ef4444; }
+
+    /* CHECKLIST MINI */
+    .checklist-card {
+      background: var(--white);
+      border-radius: 16px;
+      border: 1px solid var(--sand);
+      padding: 1.25rem;
+    }
+
+    .check-items { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.85rem;
+    }
+
+    .check-item input[type=checkbox] {
+      width: 16px; height: 16px;
+      accent-color: var(--terracotta);
+      cursor: pointer;
+    }
+
+    .check-item label { cursor: pointer; color: var(--mid); }
+    .check-item input:checked + label { text-decoration: line-through; color: var(--muted); }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--sand);
+      border-radius: 99px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--terracotta);
+      border-radius: 99px;
+      width: 40%;
+      transition: width 0.4s;
+    }
+
+    .progress-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.4rem; text-align: right; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">✈️</div>
+    <span class="logo-name">TravelAI</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <span class="nav-label">Principal</span>
+    <a class="nav-item active" href="/dashboard"><span class="icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/chat"><span class="icon">🤖</span> Assistant IA</a>
+    <a class="nav-item" href="/trips"><span class="icon">✈️</span> Mes Voyages</a>
+    <a class="nav-item" href="/recommendations"><span class="icon">🌍</span> Recommandations</a>
+
+    <span class="nav-label">Gestion</span>
+    <a class="nav-item" href="/favorites"><span class="icon">❤️</span> Favoris</a>
+    <a class="nav-item" href="/checklist"><span class="icon">✅</span> Checklist</a>
+    <a class="nav-item" href="#"><span class="icon">📊</span> Statistiques</a>
+
+    <span class="nav-label">Compte</span>
+    <a class="nav-item" href="#"><span class="icon">⚙️</span> Paramètres</a>
+    <a class="nav-item" href="/logout"><span class="icon">🚪</span> Déconnexion</a>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">AB</div>
+    <div class="user-info">
+      <div class="user-name">Ahmed Benali</div>
+      <div class="user-plan">Plan Gratuit</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title">Bonjour, Ahmed 👋</div>
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" placeholder="Chercher une destination…">
+    </div>
+    <div class="topbar-actions">
+      <a href="/chat" class="btn-primary">+ Planifier un voyage</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">✈️</div>
+        <div class="stat-val">3</div>
+        <div class="stat-label">Voyages planifiés</div>
+        <div class="stat-trend">↑ 1 ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🌍</div>
+        <div class="stat-val">8</div>
+        <div class="stat-label">Pays visités</div>
+        <div class="stat-trend">↑ 2 cette année</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-val">24</div>
+        <div class="stat-label">Favoris sauvegardés</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💬</div>
+        <div class="stat-val">12</div>
+        <div class="stat-label">Conversations IA</div>
+        <div class="stat-trend">↑ 5 cette semaine</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid-main">
+      <!-- LEFT -->
+      <div>
+        <div class="section-head">
+          <span class="section-title">Mes voyages récents</span>
+          <a class="section-link" href="/trips">Voir tout →</a>
+        </div>
+
+        <div class="trips-grid">
+          <div class="trip-card">
+            <div class="trip-img" style="background-image:url('https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=400&q=75')">
+              <span class="trip-badge active">En cours</span>
+            </div>
+            <div class="trip-body">
+              <div class="trip-dest">🗼 Tokyo, Japon</div>
+              <div class="trip-dates">15 Mai – 25 Mai 2026</div>
+              <div class="trip-meta">
+                <span class="meta-tag">10 jours</span>
+                <span class="meta-tag">💰 1 500€</span>
+                <span class="meta-tag">👤 Solo</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="trip-card">
+            <div class="trip-img" style="background-image:url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=75')">
+              <span class="trip-badge">Planifié</span>
+            </div>
+            <div class="trip-body">
+              <div class="trip-dest">🏝️ Bali, Indonésie</div>
+              <div class="trip-dates">10 Juil – 20 Juil 2026</div>
+              <div class="trip-meta">
+                <span class="meta-tag">10 jours</span>
+                <span class="meta-tag">💰 900€</span>
+                <span class="meta-tag">👫 Couple</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="trip-card">
+            <div class="trip-img" style="background-image:url('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=75')">
+              <span class="trip-badge" style="background:rgba(139,92,246,0.85);color:white">Terminé</span>
+            </div>
+            <div class="trip-body">
+              <div class="trip-dest">🏛️ Rome, Italie</div>
+              <div class="trip-dates">3 Fév – 8 Fév 2026</div>
+              <div class="trip-meta">
+                <span class="meta-tag">5 jours</span>
+                <span class="meta-tag">💰 700€</span>
+                <span class="meta-tag">👥 Famille</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="trip-card" style="background:var(--cream);display:flex;align-items:center;justify-content:center;min-height:200px;border-style:dashed;">
+            <div style="text-align:center;color:var(--muted)">
+              <div style="font-size:2rem;margin-bottom:0.5rem">+</div>
+              <div style="font-size:0.85rem">Nouveau voyage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+        <!-- CHATBOX MINI -->
+        <div class="chat-box">
+          <div class="chat-header">
+            <div class="ai-avatar">🤖</div>
+            <div>
+              <div class="chat-title">Assistant TravelAI</div>
+              <div class="chat-status"><span class="status-dot"></span>En ligne</div>
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="msg msg-ai">Bonjour Ahmed ! 👋 Où souhaitez-vous voyager ensuite ?</div>
+            <div class="msg msg-user">Je veux visiter le Maroc en août</div>
+            <div class="msg msg-ai">Excellente idée ! Marrakech, Fès ou Casablanca ? Je peux vous créer un itinéraire complet 🌟</div>
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input" type="text" id="msgInput" placeholder="Posez votre question…" onkeypress="sendMsg(event)">
+            <button class="send-btn" onclick="sendMsg()">➤</button>
+          </div>
+          <a href="/chat" class="chat-full-link">Ouvrir le chat complet →</a>
+        </div>
+
+        <!-- RECO -->
+        <div class="reco-card">
+          <div class="section-head">
+            <span class="section-title" style="font-size:1rem">Destinations du moment</span>
+            <a class="section-link" href="/recommendations">Voir tout →</a>
+          </div>
+          <div class="reco-list">
+            <div class="reco-item">
+              <div class="reco-img" style="background-image:url('https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=200&q=75')"></div>
+              <div class="reco-info">
+                <div class="reco-name">🏔️ Marrakech</div>
+                <div class="reco-sub">Maroc · À partir de 350€</div>
+              </div>
+              <span class="reco-heart" onclick="this.classList.toggle('liked')">♡</span>
+            </div>
+            <div class="reco-item">
+              <div class="reco-img" style="background-image:url('https://images.unsplash.com/photo-1499856871958-5b9357976b82?w=200&q=75')"></div>
+              <div class="reco-info">
+                <div class="reco-name">🗼 Paris</div>
+                <div class="reco-sub">France · À partir de 200€</div>
+              </div>
+              <span class="reco-heart" onclick="this.classList.toggle('liked')">♡</span>
+            </div>
+            <div class="reco-item">
+              <div class="reco-img" style="background-image:url('https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=200&q=75')"></div>
+              <div class="reco-info">
+                <div class="reco-name">🦘 Sydney</div>
+                <div class="reco-sub">Australie · À partir de 1100€</div>
+              </div>
+              <span class="reco-heart" onclick="this.classList.toggle('liked')">♡</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHECKLIST MINI -->
+        <div class="checklist-card">
+          <div class="section-head">
+            <span class="section-title" style="font-size:1rem">Checklist – Tokyo</span>
+            <a class="section-link" href="/checklist">Gérer →</a>
+          </div>
+          <div class="check-items">
+            <div class="check-item"><input type="checkbox" id="c1" checked><label for="c1">Passeport / Visa</label></div>
+            <div class="check-item"><input type="checkbox" id="c2" checked><label for="c2">Billets d'avion</label></div>
+            <div class="check-item"><input type="checkbox" id="c3"><label for="c3">Réservation hôtel</label></div>
+            <div class="check-item"><input type="checkbox" id="c4"><label for="c4">Assurance voyage</label></div>
+            <div class="check-item"><input type="checkbox" id="c5"><label for="c5">Valise préparée</label></div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <div class="progress-label">2/5 tâches complétées</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function sendMsg(e) {
+    if (e && e.type === 'keypress' && e.key !== 'Enter') return;
+    const input = document.getElementById('msgInput');
+    const val = input.value.trim();
+    if (!val) return;
+    const msgs = document.getElementById('chatMessages');
+    const um = document.createElement('div');
+    um.className = 'msg msg-user'; um.textContent = val;
+    msgs.appendChild(um);
+    input.value = '';
+    setTimeout(() => {
+      const am = document.createElement('div');
+      am.className = 'msg msg-ai';
+      am.textContent = 'Super ! Laissez-moi planifier ça pour vous… 🌍';
+      msgs.appendChild(am);
+      msgs.scrollTop = msgs.scrollHeight;
+    }, 800);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+services:
+  web:
+    build: .
+    container_name: travelai-web
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-change-me}
+      APIFY_TOKEN: ${APIFY_TOKEN:-}
+      OLLAMA_HOST: http://ollama:11434
+      DB_FILE: /data/database.json
+    volumes:
+      - travelai_data:/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: travelai-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  travelai_data:
+  ollama_models:

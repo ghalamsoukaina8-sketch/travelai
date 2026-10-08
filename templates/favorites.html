@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TravelAI – Favoris</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream: #F5F0E8; --sand: #E8DFD0; --terracotta: #C4714A; --terra-dark: #A05A37; --deep: #1A1410; --mid: #3D2E22; --muted: #8A7A6A; --white: #FFFDF9; --sidebar-w: 240px; }
+    body { min-height:100vh; background:var(--cream); font-family:'DM Sans',sans-serif; color:var(--deep); display:flex; }
+
+    .sidebar { width:var(--sidebar-w); background:var(--deep); min-height:100vh; display:flex; flex-direction:column; position:fixed; top:0; left:0; z-index:100; }
+    .sidebar-logo { padding:1.75rem 1.5rem 1.25rem; display:flex; align-items:center; gap:0.7rem; border-bottom:1px solid rgba(255,255,255,0.07); }
+    .logo-icon { width:36px;height:36px;background:var(--terracotta);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .logo-name { font-family:'Playfair Display',serif;color:var(--white);font-size:1.2rem; }
+    .sidebar-nav { padding:1.25rem 0.75rem; flex:1; display:flex; flex-direction:column; gap:0.2rem; }
+    .nav-label { font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);padding:0.6rem 0.75rem 0.3rem;margin-top:0.75rem; }
+    .nav-item { display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;border-radius:10px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.88rem;transition:all 0.2s;cursor:pointer; }
+    .nav-item:hover { color:var(--white);background:rgba(255,255,255,0.06); }
+    .nav-item.active { color:var(--white);background:var(--terracotta);font-weight:500; }
+    .nav-item .icon { font-size:1rem;width:20px;text-align:center; }
+    .sidebar-user { padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:0.75rem; }
+    .user-avatar { width:36px;height:36px;background:linear-gradient(135deg,var(--terracotta),#E8956A);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:white;font-weight:600; }
+    .user-name { font-size:0.85rem;color:var(--white);font-weight:500; }
+    .user-plan { font-size:0.72rem;color:rgba(255,255,255,0.35); }
+
+    .main { margin-left:var(--sidebar-w); flex:1; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--sand); padding:1rem 2rem; display:flex; align-items:center; gap:1rem; }
+    .topbar-title { font-family:'Playfair Display',serif; font-size:1.4rem; flex:1; }
+
+    .content { padding:2rem; }
+
+    .tabs { display:flex; gap:0.5rem; margin-bottom:2rem; }
+    .tab { padding:0.5rem 1.2rem; border-radius:10px; border:1.5px solid var(--sand); background:var(--white); font-family:'DM Sans',sans-serif; font-size:0.85rem; color:var(--mid); cursor:pointer; transition:all 0.2s; }
+    .tab.active { background:var(--terracotta); border-color:var(--terracotta); color:white; }
+
+    .fav-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1.1rem; }
+
+    .fav-card { background:var(--white); border:1px solid var(--sand); border-radius:14px; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
+    .fav-card:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(26,20,16,0.1); }
+    .fav-img { height:140px; background-size:cover; background-position:center; position:relative; }
+    .fav-remove { position:absolute; top:0.6rem; right:0.6rem; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;color:#ef4444; }
+    .fav-remove:hover { background:white;transform:scale(1.1); }
+    .fav-body { padding:1rem; }
+    .fav-name { font-weight:600; font-size:0.95rem; margin-bottom:0.2rem; }
+    .fav-sub { font-size:0.78rem; color:var(--muted); margin-bottom:0.75rem; }
+    .fav-actions { display:flex; gap:0.5rem; }
+    .fav-btn { flex:1; padding:0.45rem; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.78rem; cursor:pointer; border:1.5px solid var(--sand); color:var(--mid); background:transparent; transition:all 0.2s; }
+    .fav-btn:hover { border-color:var(--terracotta); color:var(--terracotta); }
+    .fav-btn-fill { background:var(--terracotta); border-color:var(--terracotta); color:white; }
+    .fav-btn-fill:hover { background:var(--terra-dark); color:white; }
+
+    .empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+    .empty-icon { font-size:3rem; margin-bottom:1rem; }
+    .empty-text { font-size:0.9rem; }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">✈️</div><span class="logo-name">TravelAI</span></div>
+  <nav class="sidebar-nav">
+    <span class="nav-label">Principal</span>
+    <a class="nav-item" href="/dashboard"><span class="icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/chat"><span class="icon">🤖</span> Assistant IA</a>
+    <a class="nav-item" href="/trips"><span class="icon">✈️</span> Mes Voyages</a>
+    <a class="nav-item" href="/recommendations"><span class="icon">🌍</span> Recommandations</a>
+    <span class="nav-label">Gestion</span>
+    <a class="nav-item active" href="/favorites"><span class="icon">❤️</span> Favoris</a>
+    <a class="nav-item" href="/checklist"><span class="icon">✅</span> Checklist</a>
+    <a class="nav-item" href="#"><span class="icon">📊</span> Statistiques</a>
+    <span class="nav-label">Compte</span>
+    <a class="nav-item" href="#"><span class="icon">⚙️</span> Paramètres</a>
+    <a class="nav-item" href="/logout"><span class="icon">🚪</span> Déconnexion</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">AB</div>
+    <div style="flex:1"><div class="user-name">Ahmed Benali</div><div class="user-plan">Plan Gratuit</div></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title">Mes Favoris ❤️</div>
+    <span style="font-size:0.85rem;color:var(--muted)">24 éléments sauvegardés</span>
+  </div>
+  <div class="content">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(this,'destinations')">🌍 Destinations (12)</button>
+      <button class="tab" onclick="switchTab(this,'hotels')">🏨 Hôtels (7)</button>
+      <button class="tab" onclick="switchTab(this,'restaurants')">🍽️ Restaurants (5)</button>
+    </div>
+
+    <div class="fav-grid" id="favGrid">
+      <div class="fav-card">
+        <div class="fav-img" style="background-image:url('https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=500&q=75')">
+          <button class="fav-remove" onclick="removeCard(this)" title="Retirer des favoris">♥</button>
+        </div>
+        <div class="fav-body">
+          <div class="fav-name">🗼 Tokyo, Japon</div>
+          <div class="fav-sub">Ajouté le 10 Mai 2026</div>
+          <div class="fav-actions">
+            <button class="fav-btn">📋 Voir</button>
+            <button class="fav-btn fav-btn-fill" onclick="window.location.href='/trips'">✈️ Planifier</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fav-card">
+        <div class="fav-img" style="background-image:url('https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=500&q=75')">
+          <button class="fav-remove" onclick="removeCard(this)">♥</button>
+        </div>
+        <div class="fav-body">
+          <div class="fav-name">🏔️ Marrakech, Maroc</div>
+          <div class="fav-sub">Ajouté le 8 Mai 2026</div>
+          <div class="fav-actions">
+            <button class="fav-btn">📋 Voir</button>
+            <button class="fav-btn fav-btn-fill" onclick="window.location.href='/trips'">✈️ Planifier</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fav-card">
+        <div class="fav-img" style="background-image:url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=500&q=75')">
+          <button class="fav-remove" onclick="removeCard(this)">♥</button>
+        </div>
+        <div class="fav-body">
+          <div class="fav-name">🏝️ Bali, Indonésie</div>
+          <div class="fav-sub">Ajouté le 5 Mai 2026</div>
+          <div class="fav-actions">
+            <button class="fav-btn">📋 Voir</button>
+            <button class="fav-btn fav-btn-fill" onclick="window.location.href='/trips'">✈️ Planifier</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fav-card">
+        <div class="fav-img" style="background-image:url('https://images.unsplash.com/photo-1499856871958-5b9357976b82?w=500&q=75')">
+          <button class="fav-remove" onclick="removeCard(this)">♥</button>
+        </div>
+        <div class="fav-body">
+          <div class="fav-name">🗼 Paris, France</div>
+          <div class="fav-sub">Ajouté le 1 Mai 2026</div>
+          <div class="fav-actions">
+            <button class="fav-btn">📋 Voir</button>
+            <button class="fav-btn fav-btn-fill" onclick="window.location.href='/trips'">✈️ Planifier</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function removeCard(btn) {
+    const card = btn.closest('.fav-card');
+    card.style.opacity = '0'; card.style.transform = 'scale(0.9)';
+    card.style.transition = 'all 0.3s';
+    setTimeout(() => card.remove(), 300);
+  }
+  function switchTab(btn, tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

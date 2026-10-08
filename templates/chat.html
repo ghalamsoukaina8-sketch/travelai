@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TravelAI – Planifiez votre voyage</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --cream:#F5F0E8;--sand:#E8DFD0;--terra:#C4714A;--terra-d:#A05A37;
+      --deep:#1A1410;--mid:#3D2E22;--muted:#8A7A6A;--white:#FFFDF9;
+      --green:#4ADE80;--sw:260px;
+    }
+    body{min-height:100vh;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--deep);display:flex;}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sw);background:var(--deep);min-height:100vh;display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform 0.3s;}
+    .sb-logo{padding:1.5rem 1.25rem 1.1rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+    .sb-icon{width:36px;height:36px;background:var(--terra);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+    .sb-name{font-family:'Playfair Display',serif;color:var(--white);font-size:1.2rem;}
+    .sb-nav{padding:1rem 0.75rem;flex:1;display:flex;flex-direction:column;gap:0.15rem;}
+    .sb-section{font-size:0.66rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.25);padding:0.75rem 0.75rem 0.25rem;margin-top:0.5rem;}
+    .nav-a{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.9rem;border-radius:10px;color:rgba(255,255,255,0.45);text-decoration:none;font-size:0.87rem;transition:all 0.2s;}
+    .nav-a:hover{color:var(--white);background:rgba(255,255,255,0.06);}
+    .nav-a.active{color:var(--white);background:var(--terra);font-weight:500;}
+    .nav-a .ic{font-size:1rem;width:20px;text-align:center;}
+    .sb-user{padding:0.9rem 1.1rem;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:0.75rem;}
+    .av{width:34px;height:34px;background:linear-gradient(135deg,var(--terra),#E8956A);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;color:white;font-weight:700;}
+    .av-name{font-size:0.83rem;color:var(--white);font-weight:500;}
+    .av-sub{font-size:0.7rem;color:rgba(255,255,255,0.3);}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+    /* TOPBAR */
+    .topbar{background:var(--white);border-bottom:1px solid var(--sand);padding:0.9rem 2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+    .topbar-left{display:flex;align-items:center;gap:0.75rem;flex:1;}
+    .ai-ball{width:40px;height:40px;background:linear-gradient(135deg,var(--terra),#E8956A);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 0 0 4px rgba(196,113,74,0.15);}
+    .ai-info{}
+    .ai-title{font-weight:600;font-size:0.95rem;color:var(--deep);}
+    .ai-status{display:flex;align-items:center;gap:0.35rem;font-size:0.75rem;color:var(--green);}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+    .new-chat-btn{display:flex;align-items:center;gap:0.4rem;background:var(--terra);color:white;border:none;border-radius:9px;padding:0.5rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:500;cursor:pointer;transition:background 0.2s;}
+    .new-chat-btn:hover{background:var(--terra-d);}
+
+    /* CHAT AREA */
+    .chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+    /* WELCOME SCREEN */
+    .welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;}
+    .welcome-icon{font-size:4rem;margin-bottom:1.25rem;animation:float 3s ease-in-out infinite;}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .welcome h1{font-family:'Playfair Display',serif;font-size:2rem;color:var(--deep);margin-bottom:0.5rem;}
+    .welcome p{color:var(--muted);font-size:0.92rem;max-width:420px;line-height:1.7;margin-bottom:2rem;}
+    .quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;max-width:520px;width:100%;}
+    .q-card{background:var(--white);border:1.5px solid var(--sand);border-radius:12px;padding:1rem;cursor:pointer;text-align:left;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+    .q-card:hover{border-color:var(--terra);background:rgba(196,113,74,0.04);transform:translateY(-2px);}
+    .q-card .q-icon{font-size:1.3rem;margin-bottom:0.4rem;}
+    .q-card .q-title{font-size:0.85rem;font-weight:600;color:var(--deep);margin-bottom:0.2rem;}
+    .q-card .q-sub{font-size:0.75rem;color:var(--muted);}
+
+    /* MESSAGES */
+    .messages{flex:1;overflow-y:auto;padding:1.5rem 2rem;display:flex;flex-direction:column;gap:1.25rem;}
+    .messages::-webkit-scrollbar{width:4px;}
+    .messages::-webkit-scrollbar-thumb{background:var(--sand);border-radius:99px;}
+
+    .msg-row{display:flex;gap:0.75rem;align-items:flex-end;animation:fadeUp 0.3s ease;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .msg-row.user{flex-direction:row-reverse;}
+
+    .msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.8rem;}
+    .msg-av.ai-av{background:linear-gradient(135deg,var(--terra),#E8956A);}
+    .msg-av.u-av{background:linear-gradient(135deg,#6366F1,#8B5CF6);color:white;font-weight:700;font-size:0.72rem;}
+
+    .bubble{max-width:68%;padding:0.85rem 1.1rem;border-radius:16px;font-size:0.88rem;line-height:1.65;}
+    .bubble.ai{background:var(--white);border:1px solid var(--sand);border-bottom-left-radius:3px;color:var(--mid);}
+    .bubble.user{background:var(--terra);color:white;border-bottom-right-radius:3px;}
+    .bubble pre{white-space:pre-wrap;font-family:inherit;}
+
+    /* Plan card inside bubble */
+    .plan-card{background:var(--cream);border:1px solid var(--sand);border-radius:10px;margin-top:0.75rem;overflow:hidden;}
+    .plan-header{background:var(--terra);color:white;padding:0.6rem 0.9rem;font-size:0.82rem;font-weight:600;}
+    .plan-body{padding:0.75rem 0.9rem;font-size:0.82rem;color:var(--mid);white-space:pre-wrap;line-height:1.7;}
+
+    /* Suggestions */
+    .suggestions{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.75rem;}
+    .chip{background:var(--cream);border:1.5px solid var(--sand);color:var(--mid);font-size:0.78rem;padding:0.35rem 0.8rem;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+    .chip:hover{border-color:var(--terra);color:var(--terra);}
+
+    /* Typing */
+    .typing-row{display:flex;gap:0.75rem;align-items:flex-end;}
+    .typing-bubble{background:var(--white);border:1px solid var(--sand);border-radius:16px;border-bottom-left-radius:3px;padding:0.85rem 1.1rem;display:flex;gap:5px;align-items:center;}
+    .typing-bubble span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite;}
+    .typing-bubble span:nth-child(2){animation-delay:0.2s;}
+    .typing-bubble span:nth-child(3){animation-delay:0.4s;}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+    /* INPUT AREA */
+    .input-area{background:var(--white);border-top:1px solid var(--sand);padding:1rem 2rem;flex-shrink:0;}
+    .quick-actions{display:flex;gap:0.4rem;margin-bottom:0.65rem;flex-wrap:wrap;}
+    .qa{background:var(--cream);border:1.5px solid var(--sand);border-radius:7px;padding:0.35rem 0.75rem;font-family:'DM Sans',sans-serif;font-size:0.76rem;color:var(--mid);cursor:pointer;transition:all 0.2s;}
+    .qa:hover{border-color:var(--terra);color:var(--terra);}
+    .input-bar{display:flex;align-items:center;gap:0.6rem;background:var(--cream);border:2px solid var(--sand);border-radius:14px;padding:0.7rem 1rem;transition:border-color 0.2s;}
+    .input-bar:focus-within{border-color:var(--terra);}
+    #msgInput{flex:1;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--deep);outline:none;resize:none;max-height:120px;}
+    .send-btn{background:var(--terra);border:none;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;font-size:1rem;transition:background 0.2s;flex-shrink:0;}
+    .send-btn:hover{background:var(--terra-d);}
+    .send-btn:disabled{opacity:0.4;cursor:not-allowed;}
+    .input-hint{font-size:0.72rem;color:var(--muted);margin-top:0.4rem;text-align:center;}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-icon">✈️</div>
+    <span class="sb-name">TravelAI</span>
+  </div>
+  <nav class="sb-nav">
+    <span class="sb-section">Principal</span>
+    <a class="nav-a" href="/dashboard"><span class="ic">🏠</span> Dashboard</a>
+    <a class="nav-a active" href="/chat"><span class="ic">🤖</span> Assistant IA</a>
+    <a class="nav-a" href="/trips"><span class="ic">✈️</span> Mes Voyages</a>
+    <a class="nav-a" href="/recommendations"><span class="ic">🌍</span> Recommandations</a>
+    <span class="sb-section">Gestion</span>
+    <a class="nav-a" href="/favorites"><span class="ic">❤️</span> Favoris</a>
+    <a class="nav-a" href="/checklist"><span class="ic">✅</span> Checklist</a>
+    <span class="sb-section">Compte</span>
+    <a class="nav-a" href="/logout"><span class="ic">🚪</span> Déconnexion</a>
+  </nav>
+  <div class="sb-user">
+    <div class="av" id="userAv">?</div>
+    <div>
+      <div class="av-name" id="userName">Chargement...</div>
+      <div class="av-sub">Voyageur</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ai-ball">🤖</div>
+      <div class="ai-info">
+        <div class="ai-title">Assistant TravelAI</div>
+        <div class="ai-status"><span class="dot"></span> En ligne — prêt à planifier</div>
+      </div>
+    </div>
+    <button class="new-chat-btn" onclick="resetChat()">✦ Nouvelle conversation</button>
+  </div>
+
+  <div class="chat-wrap">
+    <!-- WELCOME SCREEN -->
+    <div class="welcome" id="welcomeScreen">
+      <div class="welcome-icon">✈️</div>
+      <h1>Bonjour, <span id="welcomeName">Voyageur</span> !</h1>
+      <p>Je suis votre assistant voyage intelligent. Dites-moi où vous voulez aller et je planifie tout pour vous — hôtels, restaurants, activités et budget.</p>
+      <div class="quick-grid">
+        <div class="q-card" onclick="startWith('Je veux visiter Marrakech 5 jours avec 2000 MAD')">
+          <div class="q-icon">🏔️</div>
+          <div class="q-title">Planifier Marrakech</div>
+          <div class="q-sub">5 jours · Budget moyen</div>
+        </div>
+        <div class="q-card" onclick="startWith('Recommande-moi des destinations pas chères au Maroc')">
+          <div class="q-icon">💰</div>
+          <div class="q-title">Voyage petit budget</div>
+          <div class="q-sub">Meilleures destinations économiques</div>
+        </div>
+        <div class="q-card" onclick="startWith('Planifie un voyage en famille à Agadir 7 jours')">
+          <div class="q-icon">👨‍👩‍👧</div>
+          <div class="q-title">Voyage en famille</div>
+          <div class="q-sub">Agadir · 7 jours</div>
+        </div>
+        <div class="q-card" onclick="startWith('Quels hôtels recommandes-tu à Fès ?')">
+          <div class="q-icon">🏨</div>
+          <div class="q-title">Trouver un hôtel</div>
+          <div class="q-sub">Comparer les meilleures options</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="messages" id="messages" style="display:none;"></div>
+
+    <!-- INPUT -->
+    <div class="input-area">
+      <div class="quick-actions">
+        <button class="qa" onclick="insertQ('Hôtels recommandés à ')">🏨 Hôtels</button>
+        <button class="qa" onclick="insertQ('Restaurants locaux à ')">🍽️ Restaurants</button>
+        <button class="qa" onclick="insertQ('Activités touristiques à ')">🎭 Activités</button>
+        <button class="qa" onclick="insertQ('Quel est le budget pour ')">💰 Budget</button>
+        <button class="qa" onclick="insertQ('Faut-il un visa pour ')">📋 Visa</button>
+        <button class="qa" onclick="insertQ('Quelle est la meilleure période pour visiter ')">📅 Période</button>
+      </div>
+      <div class="input-bar">
+        <textarea id="msgInput" rows="1" placeholder="Dites-moi où vous voulez voyager… Ex: Je veux visiter Bali 7 jours avec 5000 MAD" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+      <div class="input-hint">Appuyez sur <kbd>Entrée</kbd> pour envoyer · <kbd>Shift+Entrée</kbd> pour nouvelle ligne</div>
+    </div>
+  </div>
+</main>
+
+<script>
+let chatStarted = false;
+let isLoading = false;
+let userInitials = '?';
+
+// Load user info
+fetch('/api/user').then(r => r.json()).then(u => {
+  const name = u.name || 'Voyageur';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('welcomeName').textContent = name.split(' ')[0];
+  userInitials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('userAv').textContent = userInitials;
+}).catch(() => {});
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function insertQ(text) {
+  const inp = document.getElementById('msgInput');
+  inp.value = text;
+  inp.focus();
+  autoResize(inp);
+}
+
+function startWith(text) {
+  document.getElementById('msgInput').value = text;
+  sendMessage();
+}
+
+function resetChat() {
+  chatStarted = false;
+  document.getElementById('welcomeScreen').style.display = 'flex';
+  document.getElementById('messages').style.display = 'none';
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('msgInput').value = '';
+}
+
+function showMessages() {
+  if (!chatStarted) {
+    chatStarted = true;
+    document.getElementById('welcomeScreen').style.display = 'none';
+    document.getElementById('messages').style.display = 'flex';
+  }
+}
+
+function addMessage(text, type) {
+  showMessages();
+  const area = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${type === 'user' ? 'user' : ''}`;
+
+  const avatar = type === 'ai'
+    ? `<div class="msg-av ai-av">🤖</div>`
+    : `<div class="msg-av u-av">${userInitials}</div>`;
+
+  const content = type === 'ai'
+    ? formatAIMessage(text)
+    : `<div class="bubble user">${escapeHtml(text)}</div>`;
+
+  row.innerHTML = `${avatar}<div>${content}</div>`;
+  area.appendChild(row);
+  area.scrollTop = area.scrollHeight;
+}
+
+function formatAIMessage(text) {
+  // If it looks like a travel plan (has "Jour" or "JOUR"), show as plan card
+  if (text.includes('Jour') || text.includes('JOUR') || text.includes('jour')) {
+    return `
+      <div class="bubble ai">Voici votre plan de voyage 🗺️
+        <div class="plan-card">
+          <div class="plan-header">✈️ Votre itinéraire personnalisé</div>
+          <div class="plan-body">${escapeHtml(text)}</div>
+        </div>
+        <div class="suggestions">
+          <button class="chip" onclick="startWith('Quels hôtels recommandes-tu pour ce voyage ?')">🏨 Hôtels</button>
+          <button class="chip" onclick="startWith('Quel est le budget détaillé ?')">💰 Budget détaillé</button>
+          <button class="chip" onclick="startWith('Conseils pratiques pour ce voyage')">💡 Conseils</button>
+        </div>
+      </div>`;
+  }
+  return `<div class="bubble ai">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showTyping() {
+  showMessages();
+  const area = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.id = 'typingRow';
+  row.className = 'typing-row';
+  row.innerHTML = `<div class="msg-av ai-av">🤖</div><div class="typing-bubble"><span></span><span></span><span></span></div>`;
+  area.appendChild(row);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingRow');
+  if (t) t.remove();
+}
+
+// Parse destination/budget from user message
+function parseParams(msg) {
+  const dest = msg.match(/(?:à|a|visiter|pour|destination)\s+([A-Za-zÀ-ÿ\s]+?)(?:\s+\d|\s+pour|\s+avec|\s+pendant|$)/i);
+  const budget = msg.match(/(\d[\d\s,]*)\s*(?:MAD|dh|euro|€|\$)/i);
+  const duree = msg.match(/(\d+)\s*(?:jour|jours|nuit|nuits)/i);
+  const membres = msg.match(/(\d+)\s*(?:personne|personnes|adulte|adultes|famille)/i);
+  return {
+    destination: dest ? dest[1].trim() : msg.split(' ').slice(-1)[0],
+    budget: budget ? budget[1].replace(/\s/g,'') : '2000',
+    duree: duree ? duree[1] : '5',
+    membres: membres ? membres[1] : '1'
+  };
+}
+
+async function sendMessage() {
+  if (isLoading) return;
+  const input = document.getElementById('msgInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addMessage(msg, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+
+  try {
+    const params = parseParams(msg);
+    const resp = await fetch('/api/planifier', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(params)
+    });
+    const data = await resp.json();
+    removeTyping();
+    if (data.plan) {
+      addMessage(data.plan, 'ai');
+    } else {
+      addMessage("Désolé, je n'ai pas pu générer un plan. Réessayez avec une destination précise.", 'ai');
+    }
+  } catch (e) {
+    removeTyping();
+    addMessage("Erreur de connexion. Vérifiez que le serveur tourne bien.", 'ai');
+  }
+
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+</script>
+</body>
+</html>

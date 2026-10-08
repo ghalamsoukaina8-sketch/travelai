@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TravelAI – Checklist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --cream: #F5F0E8; --sand: #E8DFD0; --terracotta: #C4714A; --terra-dark: #A05A37; --deep: #1A1410; --mid: #3D2E22; --muted: #8A7A6A; --white: #FFFDF9; --sidebar-w: 240px; }
+    body { min-height:100vh; background:var(--cream); font-family:'DM Sans',sans-serif; color:var(--deep); display:flex; }
+    .sidebar { width:var(--sidebar-w); background:var(--deep); min-height:100vh; display:flex; flex-direction:column; position:fixed; top:0; left:0; z-index:100; }
+    .sidebar-logo { padding:1.75rem 1.5rem 1.25rem; display:flex; align-items:center; gap:0.7rem; border-bottom:1px solid rgba(255,255,255,0.07); }
+    .logo-icon { width:36px;height:36px;background:var(--terracotta);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .logo-name { font-family:'Playfair Display',serif;color:var(--white);font-size:1.2rem; }
+    .sidebar-nav { padding:1.25rem 0.75rem; flex:1; display:flex; flex-direction:column; gap:0.2rem; }
+    .nav-label { font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3);padding:0.6rem 0.75rem 0.3rem;margin-top:0.75rem; }
+    .nav-item { display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0.9rem;border-radius:10px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.88rem;transition:all 0.2s;cursor:pointer; }
+    .nav-item:hover { color:var(--white);background:rgba(255,255,255,0.06); }
+    .nav-item.active { color:var(--white);background:var(--terracotta);font-weight:500; }
+    .nav-item .icon { font-size:1rem;width:20px;text-align:center; }
+    .sidebar-user { padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:0.75rem; }
+    .user-avatar { width:36px;height:36px;background:linear-gradient(135deg,var(--terracotta),#E8956A);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:white;font-weight:600; }
+    .user-name { font-size:0.85rem;color:var(--white);font-weight:500; }
+    .user-plan { font-size:0.72rem;color:rgba(255,255,255,0.35); }
+    .main { margin-left:var(--sidebar-w); flex:1; }
+    .topbar { background:var(--white); border-bottom:1px solid var(--sand); padding:1rem 2rem; display:flex; align-items:center; gap:1rem; }
+    .topbar-title { font-family:'Playfair Display',serif; font-size:1.4rem; flex:1; }
+    .btn-primary { display:flex;align-items:center;gap:0.5rem;background:var(--terracotta);color:var(--white);border:none;border-radius:10px;padding:0.55rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;transition:background 0.2s; }
+    .btn-primary:hover { background:var(--terra-dark); }
+    .content { padding:2rem; display:grid; grid-template-columns:1fr 340px; gap:1.5rem; }
+
+    /* TRIP SELECTOR */
+    .trip-selector { display:flex; gap:0.6rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .trip-pill { padding:0.45rem 1rem; border-radius:20px; border:1.5px solid var(--sand); background:var(--white); font-size:0.82rem; color:var(--mid); cursor:pointer; transition:all 0.2s; }
+    .trip-pill.active { border-color:var(--terracotta); background:rgba(196,113,74,0.08); color:var(--terracotta); }
+
+    /* PROGRESS */
+    .progress-section { background:var(--white); border:1px solid var(--sand); border-radius:16px; padding:1.5rem; margin-bottom:1.25rem; }
+    .prog-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+    .prog-title { font-family:'Playfair Display',serif; font-size:1.1rem; }
+    .prog-count { font-size:0.85rem; color:var(--muted); }
+    .prog-bar { height:8px; background:var(--sand); border-radius:99px; overflow:hidden; }
+    .prog-fill { height:100%; background:linear-gradient(to right,var(--terracotta),#E8956A); border-radius:99px; transition:width 0.5s ease; }
+    .prog-pct { font-size:0.78rem; color:var(--muted); margin-top:0.5rem; text-align:right; }
+
+    /* CATEGORIES */
+    .checklist-wrap { background:var(--white); border:1px solid var(--sand); border-radius:16px; overflow:hidden; }
+    .cat-section { border-bottom:1px solid var(--sand); }
+    .cat-section:last-child { border-bottom:none; }
+    .cat-header { padding:1rem 1.25rem; display:flex; align-items:center; gap:0.75rem; cursor:pointer; user-select:none; }
+    .cat-header:hover { background:var(--cream); }
+    .cat-icon { font-size:1.2rem; }
+    .cat-title { font-weight:600; font-size:0.9rem; flex:1; }
+    .cat-prog { font-size:0.78rem; color:var(--muted); }
+    .cat-arrow { font-size:0.8rem; color:var(--muted); transition:transform 0.2s; }
+    .cat-arrow.open { transform:rotate(90deg); }
+    .cat-items { padding:0 1.25rem 1rem; display:flex; flex-direction:column; gap:0.5rem; }
+    .check-row {
+      display:flex; align-items:center; gap:0.75rem;
+      padding:0.6rem 0.75rem; border-radius:9px;
+      transition:background 0.15s;
+    }
+    .check-row:hover { background:var(--cream); }
+    .custom-check {
+      width:18px; height:18px; border-radius:5px;
+      border:2px solid var(--sand); background:white;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:all 0.2s;
+    }
+    .custom-check.checked { background:var(--terracotta); border-color:var(--terracotta); color:white; font-size:0.7rem; }
+    .check-label { font-size:0.86rem; color:var(--mid); flex:1; cursor:pointer; }
+    .check-label.done { text-decoration:line-through; color:var(--muted); }
+    .check-priority { font-size:0.68rem; padding:0.15rem 0.45rem; border-radius:5px; }
+    .p-high { background:#FEE2E2; color:#DC2626; }
+    .p-med { background:#FEF3C7; color:#D97706; }
+    .del-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.85rem; padding:0.2rem; opacity:0; transition:opacity 0.15s; }
+    .check-row:hover .del-btn { opacity:1; }
+
+    /* ADD TASK */
+    .add-task-row { display:flex; gap:0.5rem; padding:0.75rem 1.25rem; border-top:1px solid var(--sand); }
+    .add-task-input { flex:1; border:1.5px solid var(--sand); border-radius:8px; padding:0.5rem 0.75rem; font-family:'DM Sans',sans-serif; font-size:0.83rem; color:var(--deep); outline:none; background:var(--cream); transition:border-color 0.2s; }
+    .add-task-input:focus { border-color:var(--terracotta); }
+    .add-task-btn { background:var(--terracotta); border:none; border-radius:8px; padding:0.5rem 0.9rem; color:white; cursor:pointer; font-size:0.9rem; }
+
+    /* RIGHT PANEL */
+    .right-panel { display:flex; flex-direction:column; gap:1.25rem; }
+
+    .tip-card { background:linear-gradient(135deg,var(--terracotta),#E8956A); border-radius:16px; padding:1.5rem; color:white; }
+    .tip-title { font-family:'Playfair Display',serif; font-size:1rem; margin-bottom:0.5rem; }
+    .tip-text { font-size:0.82rem; opacity:0.9; line-height:1.6; }
+    .tip-btn { display:inline-block; margin-top:1rem; background:rgba(255,255,255,0.2); border:none; border-radius:8px; padding:0.45rem 1rem; color:white; font-family:'DM Sans',sans-serif; font-size:0.8rem; cursor:pointer; }
+
+    .quick-add { background:var(--white); border:1px solid var(--sand); border-radius:16px; padding:1.25rem; }
+    .qa-title { font-weight:600; font-size:0.9rem; margin-bottom:0.75rem; }
+    .qa-chips { display:flex; flex-wrap:wrap; gap:0.4rem; }
+    .qa-chip { background:var(--cream); border:1.5px solid var(--sand); border-radius:8px; padding:0.35rem 0.75rem; font-size:0.78rem; color:var(--mid); cursor:pointer; transition:all 0.2s; }
+    .qa-chip:hover { border-color:var(--terracotta); color:var(--terracotta); }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">✈️</div><span class="logo-name">TravelAI</span></div>
+  <nav class="sidebar-nav">
+    <span class="nav-label">Principal</span>
+    <a class="nav-item" href="/dashboard"><span class="icon">🏠</span> Dashboard</a>
+    <a class="nav-item" href="/chat"><span class="icon">🤖</span> Assistant IA</a>
+    <a class="nav-item" href="/trips"><span class="icon">✈️</span> Mes Voyages</a>
+    <a class="nav-item" href="/recommendations"><span class="icon">🌍</span> Recommandations</a>
+    <span class="nav-label">Gestion</span>
+    <a class="nav-item" href="/favorites"><span class="icon">❤️</span> Favoris</a>
+    <a class="nav-item active" href="/checklist"><span class="icon">✅</span> Checklist</a>
+    <a class="nav-item" href="#"><span class="icon">📊</span> Statistiques</a>
+    <span class="nav-label">Compte</span>
+    <a class="nav-item" href="#"><span class="icon">⚙️</span> Paramètres</a>
+    <a class="nav-item" href="/logout"><span class="icon">🚪</span> Déconnexion</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">AB</div>
+    <div style="flex:1"><div class="user-name">Ahmed Benali</div><div class="user-plan">Plan Gratuit</div></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title">Checklist de voyage ✅</div>
+    <button class="btn-primary" onclick="window.location.href='/chat'">🤖 Générer avec l'IA</button>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="trip-selector">
+        <button class="trip-pill active">🗼 Tokyo · 15-25 Mai</button>
+        <button class="trip-pill">🏝️ Bali · 10-20 Juil</button>
+        <button class="trip-pill">+ Nouveau</button>
+      </div>
+
+      <div class="progress-section">
+        <div class="prog-top">
+          <span class="prog-title">Progression – Tokyo</span>
+          <span class="prog-count" id="progCount">5 / 12 complétées</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:41%"></div></div>
+        <div class="prog-pct" id="progPct">41% · Continuez ! 💪</div>
+      </div>
+
+      <div class="checklist-wrap">
+
+        <!-- DOCUMENTS -->
+        <div class="cat-section">
+          <div class="cat-header" onclick="toggleCat(this)">
+            <span class="cat-icon">📋</span>
+            <span class="cat-title">Documents & Administratif</span>
+            <span class="cat-prog">2/3</span>
+            <span class="cat-arrow open">▶</span>
+          </div>
+          <div class="cat-items">
+            <div class="check-row">
+              <div class="custom-check checked" onclick="toggleCheck(this)">✓</div>
+              <span class="check-label done">Passeport valide (6 mois min.)</span>
+              <span class="check-priority p-high">Urgent</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check checked" onclick="toggleCheck(this)">✓</div>
+              <span class="check-label done">Visa Japon (eVisa)</span>
+              <span class="check-priority p-high">Urgent</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Assurance voyage internationale</span>
+              <span class="check-priority p-med">Important</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+          </div>
+          <div class="add-task-row">
+            <input class="add-task-input" type="text" placeholder="Ajouter une tâche…" onkeypress="addTask(event, this)">
+            <button class="add-task-btn" onclick="addTaskBtn(this)">+</button>
+          </div>
+        </div>
+
+        <!-- TRANSPORT -->
+        <div class="cat-section">
+          <div class="cat-header" onclick="toggleCat(this)">
+            <span class="cat-icon">✈️</span>
+            <span class="cat-title">Transport</span>
+            <span class="cat-prog">2/3</span>
+            <span class="cat-arrow open">▶</span>
+          </div>
+          <div class="cat-items">
+            <div class="check-row">
+              <div class="custom-check checked" onclick="toggleCheck(this)">✓</div>
+              <span class="check-label done">Billets d'avion réservés</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Navette aéroport → hôtel</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check checked" onclick="toggleCheck(this)">✓</div>
+              <span class="check-label done">Japan Rail Pass commandé</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+          </div>
+          <div class="add-task-row">
+            <input class="add-task-input" type="text" placeholder="Ajouter une tâche…" onkeypress="addTask(event, this)">
+            <button class="add-task-btn" onclick="addTaskBtn(this)">+</button>
+          </div>
+        </div>
+
+        <!-- HÉBERGEMENT -->
+        <div class="cat-section">
+          <div class="cat-header" onclick="toggleCat(this)">
+            <span class="cat-icon">🏨</span>
+            <span class="cat-title">Hébergement</span>
+            <span class="cat-prog">1/2</span>
+            <span class="cat-arrow open">▶</span>
+          </div>
+          <div class="cat-items">
+            <div class="check-row">
+              <div class="custom-check checked" onclick="toggleCheck(this)">✓</div>
+              <span class="check-label done">Hôtel Tokyo réservé</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Confirmation de réservation imprimée</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+          </div>
+          <div class="add-task-row">
+            <input class="add-task-input" type="text" placeholder="Ajouter une tâche…" onkeypress="addTask(event, this)">
+            <button class="add-task-btn" onclick="addTaskBtn(this)">+</button>
+          </div>
+        </div>
+
+        <!-- BAGAGES -->
+        <div class="cat-section">
+          <div class="cat-header" onclick="toggleCat(this)">
+            <span class="cat-icon">🧳</span>
+            <span class="cat-title">Bagages & Effets personnels</span>
+            <span class="cat-prog">0/4</span>
+            <span class="cat-arrow open">▶</span>
+          </div>
+          <div class="cat-items">
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Valise / sac de voyage</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Adaptateur prise japonaise</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Médicaments de base</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+            <div class="check-row">
+              <div class="custom-check" onclick="toggleCheck(this)"></div>
+              <span class="check-label">Vêtements adaptés (mai = chaud)</span>
+              <button class="del-btn" onclick="delRow(this)">🗑</button>
+            </div>
+          </div>
+          <div class="add-task-row">
+            <input class="add-task-input" type="text" placeholder="Ajouter une tâche…" onkeypress="addTask(event, this)">
+            <button class="add-task-btn" onclick="addTaskBtn(this)">+</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="tip-card">
+        <div class="tip-title">💡 Conseil IA pour Tokyo</div>
+        <div class="tip-text">N'oubliez pas de télécharger l'application Suica pour payer dans le métro et les combini. Très pratique au Japon !</div>
+        <button class="tip-btn" onclick="window.location.href='/chat'">Demander à l'IA →</button>
+      </div>
+
+      <div class="quick-add">
+        <div class="qa-title">Ajouter rapidement</div>
+        <div class="qa-chips">
+          <button class="qa-chip" onclick="quickAdd('SIM carte internationale')">📱 SIM internationale</button>
+          <button class="qa-chip" onclick="quickAdd('Photos de documents')">📸 Photos documents</button>
+          <button class="qa-chip" onclick="quickAdd('Argent liquide (Yen)')">💴 Argent liquide</button>
+          <button class="qa-chip" onclick="quickAdd('Guide de voyage')">📖 Guide voyage</button>
+          <button class="qa-chip" onclick="quickAdd('Traducteur hors-ligne téléchargé')">🌐 Traducteur offline</button>
+          <button class="qa-chip" onclick="quickAdd('Alimentation de secours')">🍫 Alimentation secours</button>
+          <button class="qa-chip" onclick="quickAdd('Powerbank')">🔋 Powerbank</button>
+          <button class="qa-chip" onclick="quickAdd('Lunettes de soleil')">😎 Lunettes soleil</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+    el.textContent = el.classList.contains('checked') ? '✓' : '';
+    const label = el.parentElement.querySelector('.check-label');
+    label.classList.toggle('done', el.classList.contains('checked'));
+    updateProgress();
+  }
+
+  function toggleCat(header) {
+    const items = header.nextElementSibling;
+    const arrow = header.querySelector('.cat-arrow');
+    const addRow = items.nextElementSibling;
+    const isOpen = arrow.classList.contains('open');
+    if (isOpen) {
+      items.style.display = 'none'; addRow.style.display = 'none';
+    } else {
+      items.style.display = ''; addRow.style.display = '';
+    }
+    arrow.classList.toggle('open');
+  }
+
+  function delRow(btn) {
+    btn.closest('.check-row').remove();
+    updateProgress();
+  }
+
+  function addTask(e, input) {
+    if (e.key !== 'Enter') return;
+    doAdd(input);
+  }
+
+  function addTaskBtn(btn) { doAdd(btn.previousElementSibling); }
+
+  function doAdd(input) {
+    const val = input.value.trim();
+    if (!val) return;
+    const items = input.closest('.cat-section').querySelector('.cat-items');
+    const row = document.createElement('div');
+    row.className = 'check-row';
+    row.innerHTML = `<div class="custom-check" onclick="toggleCheck(this)"></div><span class="check-label">${val}</span><button class="del-btn" onclick="delRow(this)">🗑</button>`;
+    items.appendChild(row);
+    input.value = '';
+    updateProgress();
+  }
+
+  function quickAdd(text) {
+    const firstInput = document.querySelector('.add-task-input');
+    firstInput.value = text;
+    doAdd(firstInput);
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.custom-check');
+    const done = document.querySelectorAll('.custom-check.checked');
+    const pct = all.length ? Math.round(done.length / all.length * 100) : 0;
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progCount').textContent = `${done.length} / ${all.length} complétées`;
+    document.getElementById('progPct').textContent = `${pct}% · ${pct === 100 ? 'Parfait ! 🎉' : 'Continuez ! 💪'}`;
+  }
+</script>
+</body>
+</html>
